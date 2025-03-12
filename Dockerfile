@@ -3,19 +3,23 @@ FROM golang:1.24.1 AS builder
 
 WORKDIR /app
 
-
-
 # Copy go.mod and initialize modules
 COPY go.mod ./
 
 # Download and verify dependencies
 RUN go mod download && \
-    go mod verify && \
+    go get -d github.com/shirou/gopsutil/v3/cpu@v3.24.5 && \
+    go get -d github.com/tklauser/go-sysconf && \
     go mod tidy
-
 
 # Copy the source code
 COPY . .
+
+# Fetch all dependencies explicitly
+RUN go get -d gopkg.in/yaml.v3 && \
+    go get -d github.com/sirupsen/logrus && \
+    go get -d github.com/spf13/cobra
+
 
 # Fetch missing dependencies
 RUN go get -d gopkg.in/yaml.v3 && \
