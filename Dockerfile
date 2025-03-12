@@ -5,19 +5,16 @@ WORKDIR /app
 
 # Copy go.mod first and download dependencies
 COPY go.mod ./
-RUN go mod download || go mod tidy
-
+RUN go mod download -x || go mod tidy -v
 # Copy the source code
 COPY . .
 
 # Build the agent and aggregator binaries for Linux/AMD64
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o pulselite-agent-amd64 cmd/agent/main.go
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o pulselite-aggregator-amd64 cmd/aggregator/main.go
-
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -o pulselite-agent-amd64 cmd/agent/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -o pulselite-aggregator-amd64 cmd/aggregator/main.go
 # Build the agent and aggregator binaries for Linux/ARM64
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o pulselite-agent-arm64 cmd/agent/main.go
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o pulselite-aggregator-arm64 cmd/aggregator/main.go
-
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -v -o pulselite-agent-arm64 cmd/agent/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -v -o pulselite-aggregator-arm64 cmd/aggregator/main.go
 # Stage 2: Create minimal agent image (AMD64)
 FROM alpine:latest AS agent-amd64
 COPY --from=builder /app/pulselite-agent-amd64 /usr/local/bin/pulselite-agent
