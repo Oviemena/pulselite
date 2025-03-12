@@ -6,7 +6,7 @@ on:
     branches: [ main ]
     tags: [ 'v*.*.*' ] # Trigger on tags like v1.0.0
   pull_request:
-    branchesadministrators: [ main ]
+    branches: [ main ]
 
 # Define the jobs to run
 jobs:
