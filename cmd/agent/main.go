@@ -9,8 +9,8 @@ import (
 
     "github.com/sirupsen/logrus"
     "github.com/spf13/cobra"
-    "github.com/Oviemena/pulselite/pkg/metrics"
 	"github.com/Oviemena/pulselite/pkg/config"
+    "github.com/Oviemena/pulselite/pkg/metrics"
 
     "github.com/shirou/gopsutil/v3/cpu"
 )
