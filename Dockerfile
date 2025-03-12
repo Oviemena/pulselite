@@ -3,9 +3,9 @@ FROM golang:1.24.1 AS builder
 
 WORKDIR /app
 
-# Copy go.mod, go.sum, and download dependencies
-COPY go.mod go.sum ./
-RUN go mod download
+# Copy go.mod first and download dependencies
+COPY go.mod ./
+RUN go mod download || go mod tidy
 
 # Copy the source code
 COPY . .
