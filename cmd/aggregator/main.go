@@ -25,6 +25,7 @@ func main() {
     rootCmd := &cobra.Command{
         Use:   "aggregator",
         Short: "PulseLite aggregator receives and processes metrics",
+        Version: "1.0.0",
     }
 
     startCmd := &cobra.Command{

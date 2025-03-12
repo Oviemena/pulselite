@@ -27,6 +27,7 @@ func main() {
     rootCmd := &cobra.Command{
         Use:   "agent",
         Short: "PulseLite agent collects and sends metrics",
+        Version: "1.0.0",
     }
 
     startCmd := &cobra.Command{
