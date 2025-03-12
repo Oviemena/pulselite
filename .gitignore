@@ -1,0 +1,30 @@
+# Binaries and build outputs
+pulselite-agent
+pulselite-agent-*
+pulselite-aggregator
+pulselite-aggregator-*
+*.exe
+*.out
+
+# Go-specific ignores
+vendor/
+*.test
+*.prof
+
+# Temporary files
+*.log
+*.tmp
+*.swp
+
+# Editor-specific files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Dependency directories (if using older Go vendoring)
+Godeps/

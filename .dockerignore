@@ -1,0 +1,34 @@
+# Git-related
+.git
+.gitignore
+
+# Build artifacts
+pulselite-agent
+pulselite-agent-*
+pulselite-aggregator
+pulselite-aggregator-*
+*.exe
+*.out
+
+# Temporary and local files
+*.log
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+
+# Editor-specific files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Documentation and examples (optional)
+README.md
+LICENSE
+examples/
+
+# Go-specific (not needed in final image)
+*.test
+*.prof
+go.sum
