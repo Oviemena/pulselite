@@ -38,15 +38,7 @@ jobs:
           GOOS=linux GOARCH=amd64 go build -o pulselite-aggregator-linux-amd64 cmd/aggregator/main.go
           GOOS=linux GOARCH=arm64 go build -o pulselite-aggregator-linux-arm64 cmd/aggregator/main.go
 
-      # Optional: Test running the binaries (uncomment to enable)
-      # - name: Test Run
-      #   run: |
-      #     ./pulselite-aggregator-linux-amd64 start --config=config.yaml &
-      #     sleep 2 # Give aggregator time to start
-      #     ./pulselite-agent-linux-amd64 start --config=config.yaml &
-      #     sleep 5 # Let agent send some metrics
-      #     curl http://localhost:8080/stats?name=cpu_usage || true # Allow failure for simplicity
-
+  
       # Upload the built binaries as workflow artifacts
       - name: Upload Binaries
         uses: actions/upload-artifact@v4
