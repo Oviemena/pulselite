@@ -30,63 +30,6 @@ jobs:
       - name: Get dependencies
         run: go mod tidy
 
-      # Build the agent and aggregator binaries
-      - name: Build Binaries
-        run: |
-          GOOS=linux GOARCH=amd64 go build -o pulselite-agent-linux-amd64 cmd/agent/main.go
-          GOOS=linux GOARCH=arm64 go build -o pulselite-agent-linux-arm64 cmd/agent/main.go
-          GOOS=linux GOARCH=amd64 go build -o pulselite-aggregator-linux-amd64 cmd/aggregator/main.go
-          GOOS=linux GOARCH=arm64 go build -o pulselite-aggregator-linux-arm64 cmd/aggregator/main.go
-
-     # Optional: Test running the binaries (uncomment to enable)
-      # - name: Test Run
-      #   run: |
-      #     ./pulselite-aggregator-linux-amd64 start --config=config.yaml &
-      #     sleep 2 # Give aggregator time to start
-      #     ./pulselite-agent-linux-amd64 start --config=config.yaml &
-      #     sleep 5 # Let agent send some metrics
-      #     curl http://localhost:8080/stats?name=cpu_usage || true # Allow failure for simplicity
-      # Placeholder for tests (uncomment when tests are added)
-      # - name: Run Tests
-      #   run: go test ./...
-
-      # Upload the built binaries as artifacts
-      - name: Upload Binaries
-        uses: actions/upload-artifact@v4
-        with:
-          name: pulselite-binaries
-          path: |name: CI
-
-# Trigger the workflow on push or pull request to the main branch, and on tags for releases
-on:
-  push:
-    branches: [ main ]
-    tags: [ 'v*.*.*' ] # Trigger on tags like v1.0.0
-  pull_request:
-    branchesadministrators: [ main ]
-
-# Define the jobs to run
-jobs:
-  build:
-    # Run on an Ubuntu runner (latest version as of March 2025)
-    runs-on: ubuntu-latest
-
-    # Steps to execute
-    steps:
-      # Checkout the repository code
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # Set up Go environment with the version from go.mod (1.24.1)
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.1'
-
-      # Install dependencies
-      - name: Get dependencies
-        run: go mod tidy
-
       # Build the agent and aggregator binaries for multiple architectures
       - name: Build Binaries
         run: |
@@ -143,7 +86,3 @@ jobs:
           asset_path: ./pulselite-binaries.zip
           asset_name: pulselite-binaries-${{ github.ref_name }}.zip
           asset_content_type: application/zip
-            pulselite-agent-linux-amd64
-            pulselite-agent-linux-arm64
-            pulselite-aggregator-linux-amd64
-            pulselite-aggregator-linux-arm64
