@@ -3,9 +3,11 @@ FROM golang:1.24.1 AS builder
 
 WORKDIR /app
 
-# Copy go.mod first and download dependencies
-COPY go.mod ./
-RUN go mod download -x || go mod tidy -v
+git add go.sum
+git commit -m "Add go.sum with dependency checksums for Docker build"
+git push
+
+
 # Copy the source code
 COPY . .
 
