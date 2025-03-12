@@ -100,7 +100,7 @@ jobs:
 
       - name: Build Docker Images
         run: |
-          docker build --target agent-amd64 -t pulselite-agent:amd64 .
+          docker build --target agent-amd64 -t pulselite-agent:amd64 . || (cat build.log && exit 1)
           docker build --target agent-arm64 -t pulselite-agent:arm64 .
           docker build --target aggregator-amd64 -t pulselite-aggregator:amd64 .
           docker build --target aggregator-arm64 -t pulselite-aggregator:arm64 .
