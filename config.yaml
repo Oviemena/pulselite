@@ -1,0 +1,13 @@
+agent:
+  url: "http://localhost:8080"
+  interval: 5s
+  source: "my-agent"
+  metrics:
+    - cpu_usage
+  verbose: true
+
+  
+aggregator:
+  port: "8080"
+  max_age: 1h
+  verbose: true
