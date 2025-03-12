@@ -57,7 +57,7 @@ func main() {
     startCmd.Flags().StringVar(&port, "port", "8080", "Port to listen on")
     startCmd.Flags().DurationVar(&maxAge, "max-age", time.Hour, "Maximum age of stored metrics")
     startCmd.Flags().BoolVar(&verbose, "verbose", false, "Enable verbose logging")
-    startCmd.Flags().StringVar(&configFile, "config", "", "Path to config.yaml file (optional)")
+    startCmd.Flags().StringVar(&configFile, "config", "/etc/pulselite/config.yaml", "Path to config.yaml file")
     rootCmd.AddCommand(startCmd)
 
     if err := rootCmd.Execute(); err != nil {

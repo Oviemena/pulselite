@@ -10,6 +10,7 @@ import (
     "github.com/sirupsen/logrus"
     "github.com/spf13/cobra"
     "github.com/Oviemena/pulselite/pkg/metrics"
+	"github.com/Oviemena/pulselite/pkg/config"
 
     "github.com/shirou/gopsutil/v3/cpu"
 )
@@ -19,6 +20,7 @@ var (
     interval      time.Duration
     sourceID      string
     verbose       bool
+	configFile    string
 )
 
 func main() {
@@ -31,6 +33,23 @@ func main() {
         Use:   "start",
         Short: "Start the agent",
         Run: func(cmd *cobra.Command, args []string) {
+			if configFile != "" {
+                cfg, err := config.LoadConfig(configFile)
+                if err != nil {
+                    logrus.Fatalf("Error loading config: %v", err)
+                }
+                // Override flags with config values if set
+                if cfg.Agent.URL != "" {
+                    aggregatorURL = cfg.Agent.URL
+                }
+                if cfg.Agent.Interval != 0 {
+                    interval = cfg.Agent.Interval
+                }
+                if cfg.Agent.Source != "" {
+                    sourceID = cfg.Agent.Source
+                }
+                verbose = cfg.Agent.Verbose // No default override needed
+            }
             setupLogger()
             logrus.Infof("Starting PulseLite Agent with source ID: %s", sourceID)
             go sendMetrics()
@@ -41,6 +60,7 @@ func main() {
     startCmd.Flags().DurationVar(&interval, "interval", 5*time.Second, "Collection interval")
     startCmd.Flags().StringVar(&sourceID, "source", os.Getenv("HOSTNAME"), "Source identifier")
     startCmd.Flags().BoolVar(&verbose, "verbose", false, "Enable verbose logging")
+    startCmd.Flags().StringVar(&configFile, "config", "/etc/pulselite/config.yaml", "Path to config.yaml file")
     rootCmd.AddCommand(startCmd)
 
     if err := rootCmd.Execute(); err != nil {
