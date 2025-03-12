@@ -93,8 +93,14 @@ jobs:
       - name: Initialize Go modules
         run: |
           go mod download
+          go mod verify
           go mod tidy
-          
+          go get -d gopkg.in/yaml.v3
+          go get -d github.com/sirupsen/logrus
+          go get -d github.com/shirou/gopsutil/v3
+          go get -d github.com/spf13/cobra
+
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 

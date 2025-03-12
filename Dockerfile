@@ -4,15 +4,25 @@ FROM golang:1.24.1 AS builder
 WORKDIR /app
 
 
-# Copy go.mod first
+
+# Copy go.mod and initialize modules
 COPY go.mod ./
 
-# Initialize go.mod and download dependencies
-RUN go mod download
-RUN go mod tidy
+# Download and verify dependencies
+RUN go mod download && \
+    go mod verify && \
+    go mod tidy
+
 
 # Copy the source code
 COPY . .
+
+# Fetch missing dependencies
+RUN go get -d gopkg.in/yaml.v3 && \
+    go get -d github.com/sirupsen/logrus && \
+    go get -d github.com/shirou/gopsutil/v3 && \
+    go get -d github.com/spf13/cobra
+
 
 # Build the agent and aggregator binaries for Linux/AMD64
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -o pulselite-agent-amd64 cmd/agent/main.go
