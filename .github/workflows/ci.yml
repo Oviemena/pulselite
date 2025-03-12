@@ -101,9 +101,10 @@ jobs:
       - name: Build Docker Images
         run: |
           docker build --progress=plain --no-cache --target agent-amd64 -t pulselite-agent:amd64 .
-          docker build --progress=plain --no-cache --target agent-arm64 -t pulselite-agent:arm64 .
-          docker build --progress=plain --no-cache --target aggregator-amd64 -t pulselite-aggregator:amd64 .
-          docker build --progress=plain --no-cache --target aggregator-arm64 -t pulselite-aggregator:arm64 .
+        shell: bash {0} 
+        # docker build --progress=plain --no-cache --target agent-arm64 -t pulselite-agent:arm64 .
+        # docker build --progress=plain --no-cache --target aggregator-amd64 -t pulselite-aggregator:amd64 .
+        # docker build --progress=plain --no-cache --target aggregator-arm64 -t pulselite-aggregator:arm64 .
       # Optional: Push to Docker Hub (uncomment if logged in above)
       # - name: Push Docker Images
       #   run: |
