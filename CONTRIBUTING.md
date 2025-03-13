@@ -1,5 +1,4 @@
 
-````markdown
 # Contributing to PulseLite
 
 We love your input! We want to make contributing to PulseLite as easy and transparent as possible.
@@ -28,4 +27,3 @@ git remote add upstream https://github.com/Oviemena/pulselite.git
 
 # Create branch
 git checkout -b feature/your-feature
-```
