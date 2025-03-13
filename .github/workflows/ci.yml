@@ -79,45 +79,45 @@ jobs:
           asset_name: pulselite-binaries-${{ github.ref_name }}.zip
           asset_content_type: application/zip
 
-  build-docker:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # build-docker:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.1'
+  #     - name: Set up Go
+  #       uses: actions/setup-go@v5
+  #       with:
+  #         go-version: '1.24.1'
 
-      - name: Initialize Go modules
-        run: |
-          go mod download
-          go get -d github.com/shirou/gopsutil/v3/cpu@v3.24.5
-          go get -d github.com/tklauser/go-sysconf
-          go mod tidy
-          go get -d gopkg.in/yaml.v3
-          go get -d github.com/sirupsen/logrus
-          go get -d github.com/spf13/cobra
+  #     - name: Initialize Go modules
+  #       run: |
+  #         go mod download
+  #         go get -d github.com/shirou/gopsutil/v3/cpu@v3.24.5
+  #         go get -d github.com/tklauser/go-sysconf
+  #         go mod tidy
+  #         go get -d gopkg.in/yaml.v3
+  #         go get -d github.com/sirupsen/logrus
+  #         go get -d github.com/spf13/cobra
 
 
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v3
 
-      # Optional: Login to Docker Hub (uncomment and configure secrets if pushing)
-      # - name: Login to Docker Hub
-      #   uses: docker/login-action@v3
-      #   with:
-      #     username: ${{ secrets.DOCKER_USERNAME }}
-      #     password: ${{ secrets.DOCKER_PASSWORD }}
+  #     # Optional: Login to Docker Hub (uncomment and configure secrets if pushing)
+  #     # - name: Login to Docker Hub
+  #     #   uses: docker/login-action@v3
+  #     #   with:
+  #     #     username: ${{ secrets.DOCKER_USERNAME }}
+  #     #     password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build Docker Images
-        run: |
-          DOCKER_BUILDKIT=1 docker build --progress=plain --no-cache --target agent-amd64 -t pulselite-agent:amd64 .
-          DOCKER_BUILDKIT=1 docker build --progress=plain --no-cache --target agent-arm64 -t pulselite-agent:arm64 .
-          DOCKER_BUILDKIT=1 docker build --progress=plain --no-cache --target aggregator-amd64 -t pulselite-aggregator:amd64 .
-          DOCKER_BUILDKIT=1 docker build --progress=plain --no-cache --target aggregator-arm64 -t pulselite-aggregator:arm64 .
+  #     - name: Build Docker Images
+  #       run: |
+  #         DOCKER_BUILDKIT=1 docker build --progress=plain --no-cache --target agent-amd64 -t pulselite-agent:amd64 .
+  #         DOCKER_BUILDKIT=1 docker build --progress=plain --no-cache --target agent-arm64 -t pulselite-agent:arm64 .
+  #         DOCKER_BUILDKIT=1 docker build --progress=plain --no-cache --target aggregator-amd64 -t pulselite-aggregator:amd64 .
+  #         DOCKER_BUILDKIT=1 docker build --progress=plain --no-cache --target aggregator-arm64 -t pulselite-aggregator:arm64 .
       # Optional: Push to Docker Hub (uncomment if logged in above)
       # - name: Push Docker Images
       #   run: |
