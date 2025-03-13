@@ -75,13 +75,7 @@ agent:
   aggregator_addr: "localhost:8080"  # Where to send metrics
   metrics:
     cpu: true              # CPU usage
-    memory: true           # Memory usage
-    disk: true             # Disk usage
-    network: true          # Network I/O
-    uptime: true           # System uptime
-    custom:                # IoT or custom metrics
-      temperature: true    # e.g., sensor data
-      humidity: false
+   
 
 aggregator:
   listen_addr: ":8080"    # HTTP server address
