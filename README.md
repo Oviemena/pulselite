@@ -119,6 +119,13 @@ Pre-built binaries are available for Linux (AMD64 and ARM64):
 2. Extract: `unzip pulselite-binaries-vX.Y.Z.zip`
 3. Run as described above
 
+
+## Roadmap
+
+Add metrics: memory, disk, network, uptime, custom telemetry (e.g., temperature for IoT).
+Prometheus export endpoint for DevOps integration.
+Configurable per-core CPU stats.
+
 ## Contributing
 
 1. Fork the repository
