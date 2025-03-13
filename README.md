@@ -1,15 +1,34 @@
 # Pulselite
+**Tagline**: *Real-time metrics for everyone—cloud, edge, and beyond.*
 
-Pulselite is a lightweight system monitoring tool designed to collect and process system metrics efficiently. It consists of two main components:
-- **Agent**: Collects system metrics (e.g., CPU usage, memory usage) and sends them to the aggregator.
-- **Aggregator**: Receives metrics from one or more agents, aggregates them, and exposes them via an HTTP API.
+PulseLite is a lightweight, open-source monitoring tool designed to deliver real-time system metrics with minimal overhead. It consists of two components:
+- **Agent**: Collects essential metrics (e.g., CPU, memory, disk, network, uptime, and custom IoT telemetry) and sends them to the aggregator or Prometheus.
+- **Aggregator**: Receives metrics, aggregates them, and exposes them via an HTTP API for dashboards or alerting.
+
+Built with Go, PulseLite supports cross-platform compilation for Linux (AMD64 and ARM64), making it ideal for cloud servers, edge devices, and small-scale deployments.
+
+## Vision
+PulseLite’s mission is to provide an easy-to-deploy, cost-effective, and customizable monitoring solution for:
+- **DevOps Engineers**: Real-time server and container insights with Prometheus compatibility.
+- **IoT Developers**: Lightweight metric collection for resource-constrained devices.
+- **Small Businesses**: Free, simple monitoring without the complexity or cost of SaaS tools.
 
 ## Features
+- **Lightweight**: Tiny binary size and low resource usage (~5MB, <1% CPU).
+- **Real-Time**: Configurable intervals (as low as 1s) for live metrics.
+- **Scalable**: Works on cloud servers, Raspberry Pis, and everything in between.
+- **Customizable**: Enable/disable metrics or add custom telemetry (e.g., IoT sensors).
+- **Prometheus Compatible**: Export metrics directly to Prometheus for DevOps workflows.
+- **Open-Source**: Free forever under the MIT License.
 
-- Lightweight and minimal resource usage
-- Configurable metric collection interval
-- HTTP API for querying aggregated metrics
-- Cross-platform binary releases
+## Metrics
+PulseLite collects:
+- **CPU Usage**: Percentage used (per-core optional).
+- **Memory Usage**: Used vs. total (in MB or %).
+- **Disk Usage**: Used vs. total (for key mounts like `/`).
+- **Network I/O**: Bytes in/out (for bandwidth tracking).
+- **Uptime**: System uptime (seconds, great for reliability).
+- **Custom Telemetry**: IoT-friendly fields (e.g., temperature, humidity) via config.
 
 ## Prerequisites
 
@@ -56,6 +75,15 @@ Both components use a `config.yaml` file for settings:
 agent:
   interval: 10s           # How often to collect metrics
   aggregator_addr: "localhost:8080"  # Where to send metrics
+  metrics:
+    cpu: true              # CPU usage
+    memory: true           # Memory usage
+    disk: true             # Disk usage
+    network: true          # Network I/O
+    uptime: true           # System uptime
+    custom:                # IoT or custom metrics
+      temperature: true    # e.g., sensor data
+      humidity: false
 
 aggregator:
   listen_addr: ":8080"    # HTTP server address
