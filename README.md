@@ -22,13 +22,11 @@ PulseLite’s mission is to provide an easy-to-deploy, cost-effective, and custo
 - **Open-Source**: Free forever under the MIT License.
 
 ## Metrics
-PulseLite collects:
-- **CPU Usage**: Percentage used (per-core optional).
-- **Memory Usage**: Used vs. total (in MB or %).
-- **Disk Usage**: Used vs. total (for key mounts like `/`).
-- **Network I/O**: Bytes in/out (for bandwidth tracking).
-- **Uptime**: System uptime (seconds, great for reliability).
-- **Custom Telemetry**: IoT-friendly fields (e.g., temperature, humidity) via config.
+Currently implemented:
+- **CPU Usage**: Percentage used across all cores.
+
+Coming soon (see Roadmap):
+- Memory usage, disk usage, network I/O, uptime, custom IoT telemetry.
 
 ## Prerequisites
 
