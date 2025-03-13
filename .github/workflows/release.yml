@@ -1,0 +1,55 @@
+name: Release Build
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*.*.*' ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.1'
+      - name: Get dependencies
+        run: go mod tidy
+      - name: Build Binaries
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o pulselite-agent-linux-amd64 cmd/agent/main.go
+          GOOS=linux GOARCH=arm64 go build -o pulselite-agent-linux-arm64 cmd/agent/main.go
+          GOOS=linux GOARCH=amd64 go build -o pulselite-aggregator-linux-amd64 cmd/aggregator/main.go
+          GOOS=linux GOARCH=arm64 go build -o pulselite-aggregator-linux-arm64 cmd/aggregator/main.go
+      - name: Upload Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: pulselite-binaries
+          path: |
+            pulselite-agent-linux-amd64
+            pulselite-agent-linux-arm64
+            pulselite-aggregator-linux-amd64
+            pulselite-aggregator-linux-arm64
+      - name: Zip Binaries
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        run: zip pulselite-binaries.zip pulselite-agent-linux-* pulselite-aggregator-linux-*
+      - name: Create Release
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+      - name: Upload Release Assets
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: ./pulselite-binaries.zip
+          asset_name: pulselite-binaries-${{ github.ref_name }}.zip
+          asset_content_type: application/zip
