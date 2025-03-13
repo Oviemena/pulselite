@@ -3,7 +3,7 @@ package main
 import (
     "bytes"
     "encoding/json"
-    "net/http" // Added this import
+    "net/http" 
     "os"
     "time"
 
@@ -13,6 +13,10 @@ import (
     "github.com/Oviemena/pulselite/pkg/metrics"
 
     "github.com/shirou/gopsutil/v3/cpu"
+    "github.com/shirou/gopsutil/v3/disk"
+    "github.com/shirou/gopsutil/v3/host"
+    "github.com/shirou/gopsutil/v3/mem"
+    "github.com/shirou/gopsutil/v3/net"
 )
 
 var (
@@ -21,6 +25,7 @@ var (
     sourceID      string
     verbose       bool
 	configFile    string
+    cfg           *config.Config
 )
 
 func main() {
@@ -33,24 +38,37 @@ func main() {
     startCmd := &cobra.Command{
         Use:   "start",
         Short: "Start the agent",
-        Run: func(cmd *cobra.Command, args []string) {
-			if configFile != "" {
-                cfg, err := config.LoadConfig(configFile)
+        PreRun: func(cmd *cobra.Command, args []string) {
+            var err error
+            if configFile != "" {
+                cfg, err = config.LoadConfig(configFile)
                 if err != nil {
                     logrus.Fatalf("Error loading config: %v", err)
                 }
-                // Override flags with config values if set
-                if cfg.Agent.URL != "" {
-                    aggregatorURL = cfg.Agent.URL
-                }
-                if cfg.Agent.Interval != 0 {
-                    interval = cfg.Agent.Interval
-                }
-                if cfg.Agent.Source != "" {
-                    sourceID = cfg.Agent.Source
-                }
-                verbose = cfg.Agent.Verbose // No default override needed
             }
+            if cfg == nil {
+                cfg = &config.Config{
+                    Agent: config.AgentConfig{
+                        URL:      "http://localhost:8080",
+                        Interval: 5 * time.Second,
+                        Source:   os.Getenv("HOSTNAME"),
+                        Metrics:  []string{"cpu_usage"},
+                        Verbose:  false,
+                    },
+                }
+            }
+            if cfg.Agent.URL != "" {
+                aggregatorURL = cfg.Agent.URL
+            }
+            if cfg.Agent.Interval != 0 {
+                interval = cfg.Agent.Interval
+            }
+            if cfg.Agent.Source != "" {
+                sourceID = cfg.Agent.Source
+            }
+            verbose = cfg.Agent.Verbose
+        },
+        Run: func(cmd *cobra.Command, args []string) {
             setupLogger()
             logrus.Infof("Starting PulseLite Agent with source ID: %s", sourceID)
             go sendMetrics()
@@ -100,17 +118,91 @@ func sendMetrics() {
 }
 
 func collectMetrics() ([]metrics.Metric, error) {
-    cpuPercent, err := cpu.Percent(time.Second, false)
-    if err != nil {
-        return nil, err
-    }
+    var collected []metrics.Metric
     hostname := sourceID
     if hostname == "" {
         hostname, _ = os.Hostname()
     }
-    metric := []metrics.Metric{
-        {Name: "cpu_usage", Value: cpuPercent[0], Timestamp: time.Now().UTC(), Source: hostname},
+    now := time.Now().UTC()
+    for _, metric := range cfg.Agent.Metrics {
+        switch metric {
+            case "cpu_usage":
+                cpuPercent, err := cpu.Percent(time.Second, false)
+                if err != nil {
+                    logrus.Errorf("Failed to collect CPU: %v", err)
+                continue
+            }
+            collected = append(collected, metrics.Metric{
+                Name: "cpu_usage",
+                Value:     cpuPercent[0],
+                Timestamp: now,
+                Source:    hostname,
+            })
+
+            case "memory_usage":
+                memStats, err := mem.VirtualMemory()
+                if err != nil {
+                    logrus.Errorf("Failed to collect memory: %v", err)
+                    continue
+                }
+                collected = append(collected, metrics.Metric{
+                    Name:      "memory_usage",
+                    Value:     memStats.UsedPercent,
+                    Timestamp: now,
+                    Source:    hostname,
+                })
+            case "disk_usage":
+                diskStats, err := disk.Usage("/")
+                if err != nil {
+                    logrus.Errorf("Failed to collect disk: %v", err)
+                    continue
+                }
+                collected = append(collected, metrics.Metric{
+                    Name:      "disk_usage",
+                    Value:     diskStats.UsedPercent,
+                    Timestamp: now,
+                    Source:    hostname,
+                })
+            case "network_io_in":
+                netStats, err := net.IOCounters(false)
+                if err != nil {
+                    logrus.Errorf("Failed to collect network: %v", err)
+                    continue
+                }
+                collected = append(collected, metrics.Metric{
+                    Name:      "network_io_in",
+                    Value:     float64(netStats[0].BytesRecv),
+                    Timestamp: now,
+                    Source:    hostname,
+                })
+            case "network_io_out":
+                netStats, err := net.IOCounters(false)
+                if err != nil {
+                    logrus.Errorf("Failed to collect network: %v", err)
+                    continue
+                }
+                collected = append(collected, metrics.Metric{
+                    Name:      "network_io_out",
+                    Value:     float64(netStats[0].BytesSent),
+                    Timestamp: now,
+                    Source:    hostname,
+                })
+            case "uptime":
+                uptime, err := host.Uptime()
+                if err != nil {
+                    logrus.Errorf("Failed to collect uptime: %v", err)
+                    continue
+                }
+                collected = append(collected, metrics.Metric{
+                    Name:      "uptime",
+                    Value:     float64(uptime),
+                    Timestamp: now,
+                    Source:    hostname,
+                })
+            default:
+                logrus.Warnf("Unknown metric: %s", metric)
+                }
+        }
+        logrus.Debugf("Collected metrics: %v", collected)
+        return collected, nil
     }
-    logrus.Debugf("Collected metrics: %v", metric) // Add this
-    return metric, nil
-}
