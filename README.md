@@ -1,7 +1,21 @@
 # Pulselite
+
+<div align="center">
+
 **Tagline**: *Real-time metrics for everyone—cloud, edge, and beyond.*
 
+[![Go Version](https://img.shields.io/badge/Go-1.24.1-blue.svg)](https://golang.org/doc/go1.24)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+<div>
+
+## Overview
+
+
 PulseLite is a lightweight, open-source monitoring tool designed to deliver real-time system metrics with minimal overhead. It consists of two components:
+
+### Key Components
+
 - **Agent**: Collects essential metrics (e.g., CPU, memory, disk, network, uptime, and custom IoT telemetry) and sends them to the aggregator or Prometheus.
 - **Aggregator**: Receives metrics, aggregates them, and exposes them via an HTTP API for dashboards or alerting.
 
@@ -14,12 +28,12 @@ PulseLite’s mission is to provide an easy-to-deploy, cost-effective, and custo
 - **Small Businesses**: Free, simple monitoring without the complexity or cost of SaaS tools.
 
 ## Features
-- **Lightweight**: Tiny binary size and low resource usage (~5MB, <1% CPU).
-- **Real-Time**: Configurable intervals (as low as 1s) for live metrics.
-- **Scalable**: Works on cloud servers, Raspberry Pis, and everything in between.
-- **Customizable**: Enable/disable metrics via config or add custom telemetry (e.g., IoT sensors).
-- **Prometheus Compatible**: Export metrics directly to Prometheus at `/prometheus` for DevOps workflows.
-- **Open-Source**: Free forever under the MIT License.
+- 🪶 **Lightweight**: Tiny binary size and low resource usage (~5MB, <1% CPU).
+- ⚡ **Real-Time**: Configurable intervals (as low as 1s) for live metrics.
+- 🎡 **Scalable**: Works on cloud servers, Raspberry Pis, and everything in between.
+- 🔧 **Customizable**: Enable/disable metrics via config or add custom telemetry (e.g., IoT sensors).
+- 📊 **Prometheus Compatible**: Export metrics directly to Prometheus at `/prometheus` for DevOps workflows.
+- 🌐 **Open-Source**: Free forever under the MIT License.
 
 ## Metrics
 PulseLite currently collects:
@@ -30,68 +44,6 @@ PulseLite currently collects:
 - **Uptime**: System uptime in seconds.
 - **Custom**: Add your own metrics via config and code.
 
-
-## Prerequisites
-
-To build and run Pulselite, you'll need:
-- **Go**: 1.24.1 or later (for building from source).
-- **Git**: To clone the repository.
-- **OS**: Linux, macOS, or other POSIX-compliant systems.
-
-## Building the Binaries
-
-### Clone the Repository
-
-```bash
-git clone https://github.com/Oviemena/pulselite.git
-cd pulselite
-```
-
-### Build from Source
-
-Build the agent and aggregator for your current platform:
-
-```bash
-go build -o pulselite-agent cmd/agent/main.go
-go build -o pulselite-aggregator cmd/aggregator/main.go
-```
-
-Cross-compile for specific architectures:
-
-```bash
-# Linux AMD64
-GOOS=linux GOARCH=amd64 go build -o pulselite-agent-linux-amd64 cmd/agent/main.go
-GOOS=linux GOARCH=amd64 go build -o pulselite-aggregator-linux-amd64 cmd/aggregator/main.go
-
-# Linux ARM64
-GOOS=linux GOARCH=arm64 go build -o pulselite-agent-linux-arm64 cmd/agent/main.go
-GOOS=linux GOARCH=arm64 go build -o pulselite-aggregator-linux-arm64 cmd/aggregator/main.go
-```
-
-## Configuration
-
-Both components use a `config.yaml` file for settings:
-
-```yaml
-agent:
-  url: "http://localhost:8080"  # Aggregator endpoint
-  interval: 5s                 # Collection interval
-  source: "my-device-agent"          # Unique identifier (e.g., hostname)
-  metrics:                     # Metrics to collect
-    cpu_usage: true
-    memory_usage: false 
-    disk_usage: true
-    network_io_in: true
-    network_io_out: true
-    uptime: true
-    # Add custom metrics here, e.g., temperature: true
-  verbose: false               # Enable debug logging
-
-aggregator:
-  port: "8080"                 # HTTP API port
-  max_age: 1h                  # How long to retain metrics
-  verbose: false               # Enable debug logging
-```
 
 ## Running the Components
 
@@ -109,6 +61,7 @@ Or without config (uses defaults: port 8080, 1h max age):
 Access metrics via HTTP:
 ```bash
 curl http://localhost:8080/stats?name=cpu_usage
+curl http://localhost:8080/prometheus
 ```
 
 ### Start the Agent
@@ -117,15 +70,53 @@ curl http://localhost:8080/stats?name=cpu_usage
 ./pulselite-agent start --config config.yaml
 ```
 
+## Configuration
+
+Create `config.yaml`:
+
+```yaml
+agent:
+  url: "http://localhost:8080"
+  interval: 5s
+  source: "my-device"
+  metrics:
+    cpu_usage: true
+    memory_usage: true
+    disk_usage: true
+    network_io: true
+    uptime: true
+
+aggregator:
+  port: "8080"
+  max_age: 1h
+```
+
+## API Endpoints
+
+- `/stats`: JSON metrics
+- `/prometheus`: Prometheus format
+- `/health`: Service health
+
+## Documentation
+
+- [Installation Guide](docs/installation.md)
+- [Configuration Reference](docs/configuration.md)
+- [API Documentation](docs/api.md)
+- [Contributing Guidelines](CONTRIBUTING.md)
+
 ## Command-Line Options
 
 Both binaries support:
 - `--config <path>`: Specify a custom config file(both agent and aggregator)
+- `--version`: Show version (v0.1.0)
 - `--help`: Show available commands and flags
 
 ## Prometheus Integration
 - Point Prometheus to `http://<aggregator>:8080/prometheus`
-- Example `prometheus.yaml`:
+
+## Prometheus Setup
+- Download Prometheus: `prometheus.io`
+- Configure `prometheus.yaml`:
 
 ```yaml
 scrape_configs:
@@ -133,6 +124,10 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:8080']
 ```
+- Run: `./prometheus --config.file=prometheus.yaml`
+- View at `http://localhost:9090`
+
+
 
 ## CI/CD
 
@@ -142,11 +137,34 @@ GitHub Actions handles:
 
 ## Releases
 
-Pre-built binaries are available for Linux (AMD64 and ARM64):
-1. Download from the Releases page
-2. Extract: `unzip pulselite-binaries-vX.Y.Z.zip`
-3. Run as described above
+### Latest Release (v0.1.0)
 
+Pre-built binaries are available for:
+- Linux AMD64 (`pulselite-agent-linux-amd64`, `pulselite-aggregator-linux-amd64`)
+- Linux ARM64 (`pulselite-agent-linux-arm64`, `pulselite-aggregator-linux-arm64`)
+
+#### Installation
+
+```bash
+# Download latest release
+curl -LO https://github.com/Oviemena/pulselite/releases/latest/download/pulselite-binaries.zip
+
+# Extract binaries
+unzip pulselite-binaries.zip
+
+# Make binaries executable
+chmod +x pulselite-*
+
+# Optional: Move to system path
+sudo mv pulselite-* /usr/local/bin/
+```
+
+#### Release History
+- **v0.1.0** (2025-03-13)
+  - Initial release
+  - Basic metric collection
+  - Prometheus compatibility
+  - AMD64 and ARM64 support
 
 ## Roadmap
 
@@ -154,11 +172,56 @@ Pre-built binaries are available for Linux (AMD64 and ARM64):
 - Enhanced Metrics: Add per-core CPU stats, additional disk mounts.
 
 ## Contributing
+# Contributing to PulseLite
 
-1. Fork the repository
-2. Create a feature branch
-3. Submit a pull request to main
-4. Ensure CI checks pass
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+
+
+## Development Requirements
+
+- Go 1.24.1 or later
+- Git
+- Make (optional)
+
+## Build and Test
+
+```bash
+# Build
+go build ./cmd/agent
+go build ./cmd/aggregator
+
+# Run tests
+go test ./...
+```
+
+## Commit Messages
+
+Please use conventional commits:
+
+- `feat:` New feature
+- `fix:` Bug fix
+- `docs:` Documentation
+- `test:` Tests
+- `chore:` Maintenance
+
+## Pull Request Process
+
+1. Update documentation
+2. Add tests for new features
+3. Ensure tests pass
+4. Update CHANGELOG.md
+5. Request review
+
+
+
+## Code Style
+
+- Follow Go standards
+- Run `go fmt` before committing
+- Use meaningful variable names
+
+
+**Issues**: File bugs or ideas at [Issues](https://github.com/Oviemena/pulselite/issues).
 
 ## Troubleshooting
 
