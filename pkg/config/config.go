@@ -17,7 +17,7 @@ type AgentConfig struct {
     URL      string        `yaml:"url"`
     Interval time.Duration `yaml:"interval"`
     Source   string        `yaml:"source"`
-    Metrics  []string      `yaml:"metrics"`
+    Metrics  map[string]bool     `yaml:"metrics"`
     Verbose  bool          `yaml:"verbose"`
 }
 
@@ -38,15 +38,21 @@ func LoadConfig(file string) (*Config, error) {
         return nil, fmt.Errorf("failed to parse config file: %v", err)
     }
 
-    // Set defaults if fields are omitted
     if cfg.Agent.URL == "" {
         cfg.Agent.URL = "http://localhost:8080"
     }
     if cfg.Agent.Interval == 0 {
         cfg.Agent.Interval = 5 * time.Second
     }
-    if len(cfg.Agent.Metrics) == 0 {
-        cfg.Agent.Metrics = []string{"cpu_usage"}
+    if cfg.Agent.Metrics == nil {
+        cfg.Agent.Metrics = map[string]bool{
+            "cpu_usage":      true,
+            "memory_usage":   true,
+            "disk_usage":     true,
+            "network_io_in":  true,
+            "network_io_out": true,
+            "uptime":         true,
+        }
     }
     if cfg.Aggregator.Port == "" {
         cfg.Aggregator.Port = "8080"

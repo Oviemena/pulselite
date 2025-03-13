@@ -9,6 +9,8 @@ import (
     "github.com/Oviemena/pulselite/pkg/api"
     "github.com/Oviemena/pulselite/pkg/config"
     "github.com/Oviemena/pulselite/pkg/metrics"
+    "github.com/prometheus/client_golang/prometheus"
+    "github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var (
@@ -37,21 +39,21 @@ func main() {
                 if err != nil {
                     logrus.Fatalf("Error loading config: %v", err)
                 }
-                // Override flags with config values if set
                 if cfg.Aggregator.Port != "" {
                     port = cfg.Aggregator.Port
                 }
                 if cfg.Aggregator.MaxAge != 0 {
                     maxAge = cfg.Aggregator.MaxAge
                 }
-                verbose = cfg.Aggregator.Verbose // No default override needed
+                verbose = cfg.Aggregator.Verbose 
             }
-            // Initialize store with maxAge after config is loaded
             store = metrics.NewMetricStore(maxAge)
             setupLogger()
             logrus.Infof("Starting PulseLite Aggregator on :%s", port)
             http.HandleFunc("/metrics", api.HandleMetrics(store))
             http.HandleFunc("/stats", api.HandleStats(store))
+            http.Handle("/prometheus", promhttp.Handler()) 
+            go updatePrometheusMetrics()
             logrus.Fatal(http.ListenAndServe(":"+port, nil))
         },
     }
@@ -72,5 +74,35 @@ func setupLogger() {
         logrus.SetLevel(logrus.DebugLevel)
     } else {
         logrus.SetLevel(logrus.InfoLevel)
+    }
+}
+
+
+var (
+    metricGauges = make(map[string]*prometheus.GaugeVec)
+)
+
+func updatePrometheusMetrics() {
+    for {
+        store.Lock()
+        for name, metrics := range store.Data {
+            if len(metrics) == 0 {
+                continue
+            }
+            if _, exists := metricGauges[name]; !exists {
+                metricGauges[name] = prometheus.NewGaugeVec(
+                    prometheus.GaugeOpts{
+                        Name: "pulselite_" + name,
+                        Help: "PulseLite metric: " + name,
+                    },
+                    []string{"source"},
+                )
+                prometheus.MustRegister(metricGauges[name])
+            }
+            latest := metrics[len(metrics)-1] 
+            metricGauges[name].WithLabelValues(latest.Source).Set(latest.Value)
+        }
+        store.Unlock()
+        time.Sleep(5 * time.Second) 
     }
 }

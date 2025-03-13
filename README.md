@@ -17,8 +17,8 @@ PulseLite’s mission is to provide an easy-to-deploy, cost-effective, and custo
 - **Lightweight**: Tiny binary size and low resource usage (~5MB, <1% CPU).
 - **Real-Time**: Configurable intervals (as low as 1s) for live metrics.
 - **Scalable**: Works on cloud servers, Raspberry Pis, and everything in between.
-- **Customizable**: Enable/disable metrics or add custom telemetry (e.g., IoT sensors).
-- **Prometheus Compatible**: Export metrics directly to Prometheus for DevOps workflows.
+- **Customizable**: Enable/disable metrics via config or add custom telemetry (e.g., IoT sensors).
+- **Prometheus Compatible**: Export metrics directly to Prometheus at `/prometheus` for DevOps workflows.
 - **Open-Source**: Free forever under the MIT License.
 
 ## Metrics
@@ -28,9 +28,8 @@ PulseLite currently collects:
 - **Disk Usage**: Percentage used for the root (`/`) filesystem.
 - **Network I/O**: Bytes received (`network_io_in`) and sent (`network_io_out`).
 - **Uptime**: System uptime in seconds.
+- **Custom**: Add your own metrics via config and code.
 
-Coming soon (see Roadmap):
--  custom IoT telemetry.
 
 ## Prerequisites
 
@@ -79,14 +78,15 @@ agent:
   interval: 5s                 # Collection interval
   source: "my-device-agent"          # Unique identifier (e.g., hostname)
   metrics:                     # Metrics to collect
-    - cpu_usage
-    - memory_usage
-    - disk_usage
-    - network_io_in
-    - network_io_out
-    - uptime
-    - temperature
+    cpu_usage: true
+    memory_usage: false 
+    disk_usage: true
+    network_io_in: true
+    network_io_out: true
+    uptime: true
+    # Add custom metrics here, e.g., temperature: true
   verbose: false               # Enable debug logging
+
 aggregator:
   port: "8080"                 # HTTP API port
   max_age: 1h                  # How long to retain metrics
@@ -123,6 +123,17 @@ Both binaries support:
 - `--config <path>`: Specify a custom config file(both agent and aggregator)
 - `--help`: Show available commands and flags
 
+## Prometheus Integration
+- Point Prometheus to `http://<aggregator>:8080/prometheus`
+- Example `prometheus.yaml`:
+
+```yaml
+scrape_configs:
+  - job_name: 'pulselite'
+    static_configs:
+      - targets: ['localhost:8080']
+```
+
 ## CI/CD
 
 GitHub Actions handles:
@@ -139,9 +150,7 @@ Pre-built binaries are available for Linux (AMD64 and ARM64):
 
 ## Roadmap
 
-- Customizable Metrics: Enable/disable specific metrics via config with finer control.
-- Prometheus Compatibility: Export metrics to Prometheus for DevOps workflows.
-- IoT Integration: Replace temperature placeholder with real sensor support (e.g., Raspberry Pi GPIO).
+- IoT Integration: Add temperature with real sensor support (e.g., Raspberry Pi GPIO).
 - Enhanced Metrics: Add per-core CPU stats, additional disk mounts.
 
 ## Contributing
@@ -153,8 +162,8 @@ Pre-built binaries are available for Linux (AMD64 and ARM64):
 
 ## Troubleshooting
 
-- **Agent not sending metrics**: Ensure `agent.url` matches `aggregator.port` in `config.yaml` file and verify aggregator is running 
-- **Aggregator not responding**:“Address already in use” means `8080` is taken. Use `--port 8081` or free the port:
+- **Agent not sending metrics**: Ensure `agent.url` matches `aggregator.port` in `config.yaml` file and verify `aggregator` is running 
+- **Aggregator not responding**:“Address already in use” means `8080` is taken. Use `--port 8081` if `8080` is taken or free the port:
 ```bash
 sudo netstat -tulnp | grep 8080
 kill -9 <PID>

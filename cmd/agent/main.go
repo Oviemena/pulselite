@@ -124,85 +124,84 @@ func collectMetrics() ([]metrics.Metric, error) {
         hostname, _ = os.Hostname()
     }
     now := time.Now().UTC()
-    for _, metric := range cfg.Agent.Metrics {
-        switch metric {
-            case "cpu_usage":
-                cpuPercent, err := cpu.Percent(time.Second, false)
-                if err != nil {
-                    logrus.Errorf("Failed to collect CPU: %v", err)
-                continue
-            }
+    if cfg.Agent.Metrics["cpu_usage"] {
+        cpuPercent, err := cpu.Percent(time.Second, false)
+        if err != nil {
+            logrus.Errorf("Failed to collect CPU: %v", err)
+        } else {
             collected = append(collected, metrics.Metric{
-                Name: "cpu_usage",
+                Name:      "cpu_usage",
                 Value:     cpuPercent[0],
                 Timestamp: now,
                 Source:    hostname,
             })
-
-            case "memory_usage":
-                memStats, err := mem.VirtualMemory()
-                if err != nil {
-                    logrus.Errorf("Failed to collect memory: %v", err)
-                    continue
-                }
-                collected = append(collected, metrics.Metric{
-                    Name:      "memory_usage",
-                    Value:     memStats.UsedPercent,
-                    Timestamp: now,
-                    Source:    hostname,
-                })
-            case "disk_usage":
-                diskStats, err := disk.Usage("/")
-                if err != nil {
-                    logrus.Errorf("Failed to collect disk: %v", err)
-                    continue
-                }
-                collected = append(collected, metrics.Metric{
-                    Name:      "disk_usage",
-                    Value:     diskStats.UsedPercent,
-                    Timestamp: now,
-                    Source:    hostname,
-                })
-            case "network_io_in":
-                netStats, err := net.IOCounters(false)
-                if err != nil {
-                    logrus.Errorf("Failed to collect network: %v", err)
-                    continue
-                }
-                collected = append(collected, metrics.Metric{
-                    Name:      "network_io_in",
-                    Value:     float64(netStats[0].BytesRecv),
-                    Timestamp: now,
-                    Source:    hostname,
-                })
-            case "network_io_out":
-                netStats, err := net.IOCounters(false)
-                if err != nil {
-                    logrus.Errorf("Failed to collect network: %v", err)
-                    continue
-                }
-                collected = append(collected, metrics.Metric{
-                    Name:      "network_io_out",
-                    Value:     float64(netStats[0].BytesSent),
-                    Timestamp: now,
-                    Source:    hostname,
-                })
-            case "uptime":
-                uptime, err := host.Uptime()
-                if err != nil {
-                    logrus.Errorf("Failed to collect uptime: %v", err)
-                    continue
-                }
-                collected = append(collected, metrics.Metric{
-                    Name:      "uptime",
-                    Value:     float64(uptime),
-                    Timestamp: now,
-                    Source:    hostname,
-                })
-            default:
-                logrus.Warnf("Unknown metric: %s", metric)
-                }
         }
+    }
+    if cfg.Agent.Metrics["memory_usage"] {
+        memStats, err := mem.VirtualMemory()
+        if err != nil {
+            logrus.Errorf("Failed to collect memory: %v", err)
+        } else {
+            collected = append(collected, metrics.Metric{
+                Name:      "memory_usage",
+                Value:     memStats.UsedPercent,
+                Timestamp: now,
+                Source:    hostname,
+            })
+        }
+    }
+    if cfg.Agent.Metrics["disk_usage"] {
+        diskStats, err := disk.Usage("/")
+        if err != nil {
+            logrus.Errorf("Failed to collect disk: %v", err)
+        } else {
+            collected = append(collected, metrics.Metric{
+                Name:      "disk_usage",
+                Value:     diskStats.UsedPercent,
+                Timestamp: now,
+                Source:    hostname,
+            })
+        }
+    }
+    if cfg.Agent.Metrics["network_io_in"] {
+        netStats, err := net.IOCounters(false)
+        if err != nil {
+            logrus.Errorf("Failed to collect network: %v", err)
+        } else {
+            collected = append(collected, metrics.Metric{
+                Name:      "network_io_in",
+                Value:     float64(netStats[0].BytesRecv),
+                Timestamp: now,
+                Source:    hostname,
+            })
+        }
+    }
+    if cfg.Agent.Metrics["network_io_out"] {
+        netStats, err := net.IOCounters(false)
+        if err != nil {
+            logrus.Errorf("Failed to collect network: %v", err)
+        } else {
+            collected = append(collected, metrics.Metric{
+                Name:      "network_io_out",
+                Value:     float64(netStats[0].BytesSent),
+                Timestamp: now,
+                Source:    hostname,
+            })
+        }
+    }
+    if cfg.Agent.Metrics["uptime"] {
+        uptime, err := host.Uptime()
+        if err != nil {
+            logrus.Errorf("Failed to collect uptime: %v", err)
+        } else {
+            collected = append(collected, metrics.Metric{
+                Name:      "uptime",
+                Value:     float64(uptime),
+                Timestamp: now,
+                Source:    hostname,
+            })
+        }
+    }
         logrus.Debugf("Collected metrics: %v", collected)
         return collected, nil
     }
