@@ -52,7 +52,15 @@ func main() {
                         URL:      "http://localhost:8080",
                         Interval: 5 * time.Second,
                         Source:   os.Getenv("HOSTNAME"),
-                        Metrics:  []string{"cpu_usage"},
+                        Metrics: map[string]bool{ 
+                            "cpu_usage":      true,
+                            "memory_usage":   false,
+                            "disk_usage":     true,
+                            "network_io_in":  true,
+                            "network_io_out": true,
+                            "uptime":         true,
+                    
+                        },
                         Verbose:  false,
                     },
                 }
