@@ -114,12 +114,16 @@ func sendMetrics() {
             continue
         }
         data, _ := json.Marshal(metrics)
-        resp, err := client.Post(aggregatorURL+"/metrics", "application/json", bytes.NewBuffer(data))
-        if err != nil {
-            logrus.Errorf("Failed to send metrics: %v", err)
-        } else {
+        for attempts := 0; attempts < 3; attempts++ { 
+            resp, err := client.Post(aggregatorURL+"/metrics", "application/json", bytes.NewBuffer(data))
+            if err != nil {
+                logrus.Errorf("Failed to send metrics (attempt %d): %v", attempts+1, err)
+                time.Sleep(2 * time.Second) // Backoff
+                continue
+            }
             resp.Body.Close()
             logrus.Debug("Metrics sent successfully")
+            break
         }
         time.Sleep(interval)
     }
@@ -132,6 +136,7 @@ func collectMetrics() ([]metrics.Metric, error) {
         hostname, _ = os.Hostname()
     }
     now := time.Now().UTC()
+    logrus.Debugf("Metrics config: %v", cfg.Agent.Metrics)
     if cfg.Agent.Metrics["cpu_usage"] {
         cpuPercent, err := cpu.Percent(time.Second, false)
         if err != nil {
