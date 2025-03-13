@@ -22,18 +22,22 @@ PulseLite’s mission is to provide an easy-to-deploy, cost-effective, and custo
 - **Open-Source**: Free forever under the MIT License.
 
 ## Metrics
-Currently implemented:
-- **CPU Usage**: Percentage used across all cores.
+PulseLite currently collects:
+- **CPU Usage**: Total percentage across all cores.
+- **Memory Usage**: Percentage of memory used.
+- **Disk Usage**: Percentage used for the root (`/`) filesystem.
+- **Network I/O**: Bytes received (`network_io_in`) and sent (`network_io_out`).
+- **Uptime**: System uptime in seconds.
 
 Coming soon (see Roadmap):
-- Memory usage, disk usage, network I/O, uptime, custom IoT telemetry.
+-  custom IoT telemetry.
 
 ## Prerequisites
 
 To build and run Pulselite, you'll need:
-- Go 1.24.1 or later
-- Git
-- A POSIX-compliant system (Linux, macOS, etc.)
+- **Go**: 1.24.1 or later (for building from source).
+- **Git**: To clone the repository.
+- **OS**: Linux, macOS, or other POSIX-compliant systems.
 
 ## Building the Binaries
 
@@ -71,14 +75,22 @@ Both components use a `config.yaml` file for settings:
 
 ```yaml
 agent:
-  interval: 10s           # How often to collect metrics
-  aggregator_addr: "localhost:8080"  # Where to send metrics
-  metrics:
-    cpu: true              # CPU usage
-   
-
+  url: "http://localhost:8080"  # Aggregator endpoint
+  interval: 5s                 # Collection interval
+  source: "my-device-agent"          # Unique identifier (e.g., hostname)
+  metrics:                     # Metrics to collect
+    - cpu_usage
+    - memory_usage
+    - disk_usage
+    - network_io_in
+    - network_io_out
+    - uptime
+    - temperature
+  verbose: false               # Enable debug logging
 aggregator:
-  listen_addr: ":8080"    # HTTP server address
+  port: "8080"                 # HTTP API port
+  max_age: 1h                  # How long to retain metrics
+  verbose: false               # Enable debug logging
 ```
 
 ## Running the Components
@@ -87,6 +99,11 @@ aggregator:
 
 ```bash
 ./pulselite-aggregator start --config config.yaml
+```
+Or without config (uses defaults: port 8080, 1h max age):
+
+```bash
+./pulselite-aggregator start
 ```
 
 Access metrics via HTTP:
@@ -103,14 +120,14 @@ curl http://localhost:8080/stats?name=cpu_usage
 ## Command-Line Options
 
 Both binaries support:
-- `--config <path>`: Specify a custom config file
+- `--config <path>`: Specify a custom config file(both agent and aggregator)
 - `--help`: Show available commands and flags
 
 ## CI/CD
 
 GitHub Actions handles:
-- Building binaries for Linux (AMD64 and ARM64)
-- Creating releases with binary distributions
+- Build: Compiles binaries for Linux (AMD64 and ARM64) on every push to main or PR.
+- Release: Creates a zip of binaries for tagged releases (e.g., v0.1.0) at Releases.
 
 ## Releases
 
@@ -122,9 +139,10 @@ Pre-built binaries are available for Linux (AMD64 and ARM64):
 
 ## Roadmap
 
-Add metrics: memory, disk, network, uptime, custom telemetry (e.g., temperature for IoT).
-Prometheus export endpoint for DevOps integration.
-Configurable per-core CPU stats.
+- Customizable Metrics: Enable/disable specific metrics via config with finer control.
+- Prometheus Compatibility: Export metrics to Prometheus for DevOps workflows.
+- IoT Integration: Replace temperature placeholder with real sensor support (e.g., Raspberry Pi GPIO).
+- Enhanced Metrics: Add per-core CPU stats, additional disk mounts.
 
 ## Contributing
 
@@ -135,8 +153,13 @@ Configurable per-core CPU stats.
 
 ## Troubleshooting
 
-- **Agent not sending metrics**: Check `aggregator_addr` in config.yaml
-- **Aggregator not responding**: Verify `listen_addr` and port availability
+- **Agent not sending metrics**: Ensure `agent.url` matches `aggregator.port` in `config.yaml` file and verify aggregator is running 
+- **Aggregator not responding**:“Address already in use” means `8080` is taken. Use `--port 8081` or free the port:
+```bash
+sudo netstat -tulnp | grep 8080
+kill -9 <PID>
+```
+Also check for port availability
 - **Build errors**: Ensure Go 1.24.1 is installed and run `go mod tidy`
 
 ## License
