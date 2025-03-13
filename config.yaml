@@ -1,12 +1,18 @@
 agent:
   url: "http://localhost:8080"
   interval: 5s
-  source: "my-agent"
+  source: "my-device-agent"
   metrics:
     - cpu_usage
+    - memory_usage
+    - disk_usage
+    - network_io_in
+    - network_io_out
+    - uptime
+
   verbose: true
 
-  
+
 aggregator:
   port: "8080"
   max_age: 1h
