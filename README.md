@@ -39,23 +39,33 @@ PulseLite’s mission is to provide an easy-to-deploy, cost-effective, and custo
 PulseLite currently collects:
 - **CPU Usage**: Total percentage across all cores.
 - **Memory Usage**: Percentage of memory used.
-- **Disk Usage**: Percentage used for the root (`/`) filesystem.
+- **Disk Usage**: % used for `/` (Linux/macOS) or `C:` (Windows), rounded to 2 decimals (e.g., 97.84).
 - **Network I/O**: Bytes received (`network_io_in`) and sent (`network_io_out`).
 - **Uptime**: System uptime in seconds.
 - **Custom**: Add your own metrics via config and code.
 
 
 ## Running the Components
-
+### Linux
 ### Start the Aggregator
 
 ```bash
 ./pulselite-aggregator start --config config.yaml
 ```
+
+### Start the Agent
+```bash
+./pulselite-agent start --config config.yaml
+```
+
 Or without config (uses defaults: port 8080, 1h max age):
 
 ```bash
 ./pulselite-aggregator start
+```
+
+```bash
+./pulselite-agent start
 ```
 
 Access metrics via HTTP:
@@ -64,12 +74,37 @@ curl http://localhost:8080/stats?name=cpu_usage
 curl http://localhost:8080/prometheus
 ```
 
-### Start the Agent
-
-
-```bash
-./pulselite-agent start --config config.yaml
+### Windows
+### Start the Aggregator
+From PowerShell or CMD, use the current directory prefix:
+```powershell
+.\pulselite-aggregator.exe start --config config.yaml
 ```
+
+### Start the Agent
+```powershell
+./pulselite-agent.exe start --config config.yaml
+```
+
+Or add to PATH:
+
+```powershell
+setx PATH "%PATH%;C:\path\to\pulselite"
+pulselite-aggregator.exe start --config config.yaml
+```
+
+```powershell
+setx PATH "%PATH%;C:\path\to\pulselite"
+pulselite-agent.exe start --config config.yaml
+```
+
+
+Access metrics via HTTP:
+```powershell
+(Invoke-WebRequest -Uri "http://localhost:8080/stats?name=cpu_usage").Content
+(Invoke-WebRequest -Uri "http://localhost:8080/prometheus").Content
+```
+
 
 ## Configuration
 
@@ -137,13 +172,9 @@ GitHub Actions handles:
 - Release: Creates a zip of binaries for tagged releases (e.g., v0.1.0) at Releases.
 
 ## Releases
-
-### Latest Release (v0.1.0)
-
-Pre-built binaries are available for:
-- Linux AMD64 (`pulselite-agent-linux-amd64`, `pulselite-aggregator-linux-amd64`)
-- Linux ARM64 (`pulselite-agent-linux-arm64`, `pulselite-aggregator-linux-arm64`)
-
+- **v0.2.0**: Added Windows support.
+- **v0.1.0**: Initial release.
+  See [CHANGELOG.md](CHANGELOG.md) for details. Binaries at [Releases](https://github.com/Oviemena/pulselite/releases).
 #### Installation
 
 ```bash
@@ -166,6 +197,8 @@ sudo mv pulselite-* /usr/local/bin/
   - Basic metric collection
   - Prometheus compatibility
   - AMD64 and ARM64 support
+- **v0.20** (2025-03-14)
+  - Windows support
 
 ## Roadmap
 

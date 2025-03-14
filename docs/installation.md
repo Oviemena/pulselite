@@ -95,3 +95,8 @@ GOOS=linux GOARCH=amd64 go build -o pulselite-aggregator-linux-amd64 cmd/aggrega
 GOOS=linux GOARCH=arm64 go build -o pulselite-agent-linux-arm64 cmd/agent/main.go
 GOOS=linux GOARCH=arm64 go build -o pulselite-aggregator-linux-arm64 cmd/aggregator/main.go
 ```
+```powershell
+   GOOS=windows GOARCH=amd64 go build -o pulselite-agent-windows-amd64.exe cmd/agent/main.go
+   GOOS=windows GOARCH=amd64 go build -o pulselite-aggregator-windows-amd64.exe cmd/aggregator/main.go
+```
+

@@ -6,6 +6,7 @@ import (
     "net/http" 
     "os"
     "time"
+    "runtime"
 
     "github.com/sirupsen/logrus"
     "github.com/spf13/cobra"
@@ -144,7 +145,7 @@ func collectMetrics() ([]metrics.Metric, error) {
         } else {
             collected = append(collected, metrics.Metric{
                 Name:      "cpu_usage",
-                Value:     cpuPercent[0],
+                Value:    float64(int(cpuPercent[0]*100+0.5)) / 100,
                 Timestamp: now,
                 Source:    hostname,
             })
@@ -157,20 +158,26 @@ func collectMetrics() ([]metrics.Metric, error) {
         } else {
             collected = append(collected, metrics.Metric{
                 Name:      "memory_usage",
-                Value:     memStats.UsedPercent,
+                Value:     float64(int(memStats.UsedPercent*100+0.5)) / 100,
                 Timestamp: now,
                 Source:    hostname,
             })
         }
     }
     if cfg.Agent.Metrics["disk_usage"] {
-        diskStats, err := disk.Usage("/")
+        var path string
+        if runtime.GOOS == "window" {
+            path = "C:"
+        } else {
+            path = "/"
+        }
+        diskStats, err := disk.Usage(path)
         if err != nil {
-            logrus.Errorf("Failed to collect disk: %v", err)
+            logrus.Errorf("Failed to collect dick usage for %s: %v", path, err)
         } else {
             collected = append(collected, metrics.Metric{
                 Name:      "disk_usage",
-                Value:     diskStats.UsedPercent,
+                Value: float64(int(diskStats.UsedPercent*100+0.5)) / 100,
                 Timestamp: now,
                 Source:    hostname,
             })
