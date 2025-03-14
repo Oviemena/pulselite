@@ -1,11 +1,20 @@
 name: Release Build
+
 on:
   push:
     branches: [ main ]
     tags: [ 'v*.*.*' ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ linux, windows ]
+        arch: [ amd64 ]
+        include:
+          - os: linux
+            arch: arm64
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -17,24 +26,50 @@ jobs:
         run: go mod tidy
       - name: Build Binaries
         run: |
-          GOOS=linux GOARCH=amd64 go build -o pulselite-agent-linux-amd64 cmd/agent/main.go
-          GOOS=linux GOARCH=arm64 go build -o pulselite-agent-linux-arm64 cmd/agent/main.go
-          GOOS=linux GOARCH=amd64 go build -o pulselite-aggregator-linux-amd64 cmd/aggregator/main.go
-          GOOS=linux GOARCH=arm64 go build -o pulselite-aggregator-linux-arm64 cmd/aggregator/main.go
+          GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -o pulselite-agent-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows' && '.exe' || '' }} cmd/agent/main.go
+          GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -o pulselite-aggregator-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows' && '.exe' || '' }} cmd/aggregator/main.go
       - name: Upload Binaries
         uses: actions/upload-artifact@v4
         with:
-          name: pulselite-binaries
+          name: pulselite-binaries-${{ matrix.os }}-${{ matrix.arch }}
           path: |
-            pulselite-agent-linux-amd64
-            pulselite-agent-linux-arm64
-            pulselite-aggregator-linux-amd64
-            pulselite-aggregator-linux-arm64
+            pulselite-agent-${{ matrix.os }}-${{ matrix.arch }}*
+            pulselite-aggregator-${{ matrix.os }}-${{ matrix.arch }}*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Download Linux AMD64 Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: pulselite-binaries-linux-amd64
+          path: artifacts/linux-amd64
+      - name: Download Linux ARM64 Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: pulselite-binaries-linux-arm64
+          path: artifacts/linux-arm64
+      - name: Download Windows AMD64 Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: pulselite-binaries-windows-amd64
+          path: artifacts/windows-amd64
       - name: Zip Binaries
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
-        run: zip pulselite-binaries.zip pulselite-agent-linux-* pulselite-aggregator-linux-*
+        run: |
+          mkdir -p release
+          cp artifacts/linux-amd64/pulselite-agent-linux-amd64 release/
+          cp artifacts/linux-amd64/pulselite-aggregator-linux-amd64 release/
+          cp artifacts/linux-arm64/pulselite-agent-linux-arm64 release/
+          cp artifacts/linux-arm64/pulselite-aggregator-linux-arm64 release/
+          cp artifacts/windows-amd64/pulselite-agent-windows-amd64.exe release/
+          cp artifacts/windows-amd64/pulselite-aggregator-windows-amd64.exe release/
+          cd release
+          zip -r pulselite-binaries-${{ github.ref_name }}.zip pulselite-*
       - name: Create Release
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -44,12 +79,11 @@ jobs:
           draft: false
           prerelease: false
       - name: Upload Release Assets
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: ./pulselite-binaries.zip
+          asset_path: release/pulselite-binaries-${{ github.ref_name }}.zip
           asset_name: pulselite-binaries-${{ github.ref_name }}.zip
           asset_content_type: application/zip
