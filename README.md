@@ -66,6 +66,7 @@ curl http://localhost:8080/prometheus
 
 ### Start the Agent
 
+
 ```bash
 ./pulselite-agent start --config config.yaml
 ```
