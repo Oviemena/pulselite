@@ -144,7 +144,7 @@ aggregator:
 
 Both binaries support:
 - `--config <path>`: Specify a custom config file(both agent and aggregator)
-- `--version`: Show version (v0.1.0)
+- `--version`: Show version (v0.2.0)
 - `--help`: Show available commands and flags
 
 ## Prometheus Integration

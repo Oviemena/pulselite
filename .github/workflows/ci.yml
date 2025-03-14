@@ -1,14 +1,19 @@
 name: PR Build
 
-# Trigger the workflow on push or pull request to the main branch, and on tags for releases
 on:
   pull_request:
     branches: [ main ]
 
-# Define the jobs to run
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ linux, windows ]
+        arch: [ amd64 ]
+        include:
+          - os: linux
+            arch: arm64
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,18 +25,12 @@ jobs:
         run: go mod tidy
       - name: Build Binaries
         run: |
-          GOOS=linux GOARCH=amd64 go build -o pulselite-agent-linux-amd64 cmd/agent/main.go
-          GOOS=linux GOARCH=arm64 go build -o pulselite-agent-linux-arm64 cmd/agent/main.go
-          GOOS=linux GOARCH=amd64 go build -o pulselite-aggregator-linux-amd64 cmd/aggregator/main.go
-          GOOS=linux GOARCH=arm64 go build -o pulselite-aggregator-linux-arm64 cmd/aggregator/main.go  
+          GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -o pulselite-agent-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows' && '.exe' || '' }} cmd/agent/main.go
+          GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -o pulselite-aggregator-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows' && '.exe' || '' }} cmd/aggregator/main.go
       - name: Upload Binaries
         uses: actions/upload-artifact@v4
         with:
-          name: pulselite-binaries
+          name: pulselite-binaries-${{ matrix.os }}-${{ matrix.arch }}
           path: |
-            pulselite-agent-linux-amd64
-            pulselite-agent-linux-arm64
-            pulselite-aggregator-linux-amd64
-            pulselite-aggregator-linux-arm64
-
-    
+            pulselite-agent-${{ matrix.os }}-${{ matrix.arch }}*
+            pulselite-aggregator-${{ matrix.os }}-${{ matrix.arch }}*
