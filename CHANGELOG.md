@@ -11,11 +11,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 - Windows OS support for agent and aggregator (metrics adapted for `C:` disk usage, previously relied on `gopsutil` fallback).
 
+
 ## [0.2.0] -2025-03-14
 ### Changed
 - Updated `disk_usage` to use `C:` on Windows and `/` on POSIX systems.
 - Enhanced `README.md` with Windows build/run instructions and setup.
 - Improved metric readability: `cpu_usage`, `memory_usage`, `disk_usage` rounded to 2 decimals.
+- Optimised `release.yml` and `ci.ym` files.
 
 ### Fixed
 - Config parsing errors from `[]string` to `map[string]bool` mismatch in earlier iterations.
