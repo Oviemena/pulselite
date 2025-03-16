@@ -9,11 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ linux, windows ]
-        arch: [ amd64 ]
-        include:
-          - os: linux
-            arch: arm64
+        target: [
+          { os: 'linux', arch: 'amd64' },
+          { os: 'linux', arch: 'arm64' },
+          { os: 'windows', arch: 'amd64' }
+        ]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,16 +21,15 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.24.1'
+          cache: true
       - name: Get dependencies
         run: go mod tidy
       - name: Build Binaries
         run: |
-          GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -o pulselite-agent-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows' && '.exe' || '' }} cmd/agent/main.go
-          GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -o pulselite-aggregator-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows' && '.exe' || '' }} cmd/aggregator/main.go
+          GOOS=${{ matrix.target.os }} GOARCH=${{ matrix.target.arch }} go build -o pulselite-agent-${{ matrix.target.os }}-${{ matrix.target.arch }}${{ matrix.target.os == 'windows' && '.exe' || '' }} cmd/agent/main.go
+          GOOS=${{ matrix.target.os }} GOARCH=${{ matrix.target.arch }} go build -o pulselite-aggregator-${{ matrix.target.os }}-${{ matrix.target.arch }}${{ matrix.target.os == 'windows' && '.exe' || '' }} cmd/aggregator/main.go
       - name: Upload Binaries
         uses: actions/upload-artifact@v4
         with:
-          name: pulselite-binaries-${{ matrix.os }}-${{ matrix.arch }}
-          path: |
-            pulselite-agent-${{ matrix.os }}-${{ matrix.arch }}*
-            pulselite-aggregator-${{ matrix.os }}-${{ matrix.arch }}*
+          name: pulselite-binaries-${{ matrix.target.os }}-${{ matrix.target.arch }}
+          path: pulselite-*
